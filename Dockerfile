@@ -1,4 +1,4 @@
-FROM steamcmd/steamcmd:ubuntu-22
+FROM steamcmd/steamcmd:ubuntu-22@sha256:59d3334701a152cc6d976111b540ec2989eb0d83babc4515ee16182f7e57fcf2
 
 ARG GID=1000
 ARG UID=1000
