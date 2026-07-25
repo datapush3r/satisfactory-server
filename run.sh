@@ -136,7 +136,18 @@ if [[ "${SKIPUPDATE,,}" != "true" ]]; then
         printf "\\nRemoving the app manifest to force Steam to check for an update...\\n"
         rm "/config/gamefiles/steamapps/appmanifest_1690800.acf" || true
     fi
-    steamcmd +force_install_dir /config/gamefiles +login anonymous +app_update "$STEAMAPPID" -beta "$STEAMBETAFLAG" $STEAMBETAPASSWORD validate +quit
+    STEAMCMD_ATTEMPTS=3
+    for attempt in $(seq 1 $STEAMCMD_ATTEMPTS); do
+        if steamcmd +force_install_dir /config/gamefiles +login anonymous +app_update "$STEAMAPPID" -beta "$STEAMBETAFLAG" $STEAMBETAPASSWORD validate +quit; then
+            break
+        elif [ "$attempt" -eq "$STEAMCMD_ATTEMPTS" ]; then
+            printf "steamcmd failed after %s attempts\\n" "$STEAMCMD_ATTEMPTS"
+            exit 1
+        else
+            printf "steamcmd failed (attempt %s/%s), retrying...\\n" "$attempt" "$STEAMCMD_ATTEMPTS"
+            sleep 5
+        fi
+    done
     cp -r /home/steam/.steam/steam/logs/* "/config/logs/steam" || printf "Failed to store Steam logs\\n"
 else
     printf "Skipping update as flag is set\\n"
