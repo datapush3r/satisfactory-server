@@ -22,5 +22,5 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:dev
+            ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
