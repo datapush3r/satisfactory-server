@@ -158,15 +158,23 @@ helm install satisfactory k8s-at-home/satisfactory -f values.yaml
 
 | Parameter               |  Default  | Function                                                  |
 |-------------------------|:---------:|-----------------------------------------------------------|
+| `AUTOPAUSE`             |  `true`   | pause the server when no players are connected             |
 | `AUTOSAVENUM`           |    `5`    | number of rotating autosave files                         |
+| `AUTOSAVEONDISCONNECT`  |  `true`   | force a save when the last player disconnects              |
 | `BACKUPINTERVAL`        |  `3600`   | seconds between `/config/backups` archives (`0` disables)  |
 | `BACKUPKEEP`            |   `24`    | number of archives to keep in `/config/backups`            |
+| `CONFIGUREDINTERNETSPEED` | `104857600` | set the assumed internet upload speed (bytes/sec)     |
+| `CONFIGUREDLANSPEED`    | `104857600` | set the assumed LAN speed (bytes/sec)                   |
 | `DEBUG`                 |  `false`  | for debugging the server                                  |
 | `DISABLESEASONALEVENTS` |  `false`  | disable the FICSMAS event (you miserable bastard)         |
 | `LOG`                   |  `false`  | disable Satisfactory log pruning                          |
+| `MAXCLIENTRATE`         | `104857600` | set the max per-client bandwidth (bytes/sec)            |
+| `MAXDYNAMICBANDWIDTH`   | `104857600` | set the max dynamic network bandwidth (bytes/sec)       |
+| `MAXINTERNETCLIENTRATE` | `104857600` | set the max per-client bandwidth over the internet (bytes/sec) |
 | `MAXOBJECTS`            | `2162688` | set the object limit for your server                      |
 | `MAXPLAYERS`            |    `4`    | set the player limit for your server                      |
 | `MAXTICKRATE`           |   `30`    | set the maximum sim tick rate for your server             |
+| `MINDYNAMICBANDWIDTH`   | `104857600` | set the min dynamic network bandwidth (bytes/sec)       |
 | `MULTIHOME`             |   `::`    | set the server's listening interface (usually not needed) |
 | `PGID`                  |  `1000`   | set the group ID of the user the server will run as       |
 | `PUID`                  |  `1000`   | set the user ID of the user the server will run as        |
@@ -178,6 +186,7 @@ helm install satisfactory k8s-at-home/satisfactory -f values.yaml
 | `STEAMBETAID`           |           | set a custom beta game version (for testing)              |
 | `STEAMBETAKEY`          |           | set password for the beta game version (for testing)      |
 | `TIMEOUT`               |   `30`    | set client timeout (in seconds)                           |
+| `TOTALNETBANDWIDTH`     | `104857600` | set the total network bandwidth budget (bytes/sec)      |
 | `VMOVERRIDE`            |  `false`  | skips the CPU model check (should not ordinarily be used) |
 
 ## Experimental Branch

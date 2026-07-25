@@ -71,6 +71,24 @@ else
     DISABLESEASONALEVENTS=""
 fi
 
+# Bandwidth settings (Engine.ini, Game.ini, Scalability.ini).
+for var in CONFIGUREDINTERNETSPEED CONFIGUREDLANSPEED MAXCLIENTRATE MAXINTERNETCLIENTRATE TOTALNETBANDWIDTH MAXDYNAMICBANDWIDTH MINDYNAMICBANDWIDTH; do
+    if ! [[ "${!var}" =~ $NUMCHECK ]]; then
+        printf "Invalid %s given: %s\\n" "$var" "${!var}"
+        declare "$var=104857600"
+    fi
+done
+printf "Setting bandwidth limits (internet speed: %s, lan speed: %s, client rate: %s/%s, net bandwidth: %s/%s/%s)\\n" \
+    "$CONFIGUREDINTERNETSPEED" "$CONFIGUREDLANSPEED" "$MAXCLIENTRATE" "$MAXINTERNETCLIENTRATE" \
+    "$TOTALNETBANDWIDTH" "$MAXDYNAMICBANDWIDTH" "$MINDYNAMICBANDWIDTH"
+
+# ServerSettings.ini settings.
+[[ "${AUTOPAUSE,,}" == "false" ]] && AUTOPAUSE="False" || AUTOPAUSE="True"
+printf "Setting auto pause to %s\\n" "$AUTOPAUSE"
+
+[[ "${AUTOSAVEONDISCONNECT,,}" == "false" ]] && AUTOSAVEONDISCONNECT="False" || AUTOSAVEONDISCONNECT="True"
+printf "Setting auto save on disconnect to %s\\n" "$AUTOSAVEONDISCONNECT"
+
 # Validate and set multihome address for network connections (useful for v6-only networks).
 if [[ "$MULTIHOME" != "" ]]; then
     if [[ "$MULTIHOME" != "" ]] && [[ "$MULTIHOME" != "::" ]]; then
@@ -110,6 +128,20 @@ ini_args=(
   "-ini:Game:[/Script/Engine.GameSession]:InitialConnectTimeout=$TIMEOUT"
   "-ini:Game:[/Script/Engine.GameSession]:MaxPlayers=$MAXPLAYERS"
   "-ini:GameUserSettings:[/Script/Engine.GameSession]:MaxPlayers=$MAXPLAYERS"
+  "-ini:Engine:[/Script/Engine.Player]:ConfiguredInternetSpeed=$CONFIGUREDINTERNETSPEED"
+  "-ini:Engine:[/Script/Engine.Player]:ConfiguredLanSpeed=$CONFIGUREDLANSPEED"
+  "-ini:Engine:[/Script/OnlineSubsystemUtils.IpNetDriver]:MaxClientRate=$MAXCLIENTRATE"
+  "-ini:Engine:[/Script/OnlineSubsystemUtils.IpNetDriver]:MaxInternetClientRate=$MAXINTERNETCLIENTRATE"
+  "-ini:Engine:[/Script/SocketSubsystemEpic.EpicNetDriver]:MaxClientRate=$MAXCLIENTRATE"
+  "-ini:Engine:[/Script/SocketSubsystemEpic.EpicNetDriver]:MaxInternetClientRate=$MAXINTERNETCLIENTRATE"
+  "-ini:Game:[/Script/Engine.GameNetworkManager]:TotalNetBandwidth=$TOTALNETBANDWIDTH"
+  "-ini:Game:[/Script/Engine.GameNetworkManager]:MaxDynamicBandwidth=$MAXDYNAMICBANDWIDTH"
+  "-ini:Game:[/Script/Engine.GameNetworkManager]:MinDynamicBandwidth=$MINDYNAMICBANDWIDTH"
+  "-ini:Scalability:[NetworkQuality@3]:TotalNetBandwidth=$TOTALNETBANDWIDTH"
+  "-ini:Scalability:[NetworkQuality@3]:MaxDynamicBandwidth=$MAXDYNAMICBANDWIDTH"
+  "-ini:Scalability:[NetworkQuality@3]:MinDynamicBandwidth=$MINDYNAMICBANDWIDTH"
+  "-ini:ServerSettings:[/Script/FactoryGame.FGServerSubsystem]:mAutoPause=$AUTOPAUSE"
+  "-ini:ServerSettings:[/Script/FactoryGame.FGServerSubsystem]:mAutoSaveOnDisconnect=$AUTOSAVEONDISCONNECT"
   "$DISABLESEASONALEVENTS"
   "$MULTIHOME"
 )
