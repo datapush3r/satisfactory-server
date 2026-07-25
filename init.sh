@@ -116,6 +116,8 @@ mkdir -p \
 
 echo "Satisfactory logs can be found in /config/gamefiles/FactoryGame/Saved/Logs" > /config/logs/satisfactory-path.txt
 
+ln -sf "${GAMECONFIGDIR}/Config/LinuxServer" /config/ini
+
 if [[ "$CURRENTUID" -eq "0" ]]; then
     chown -R "$PUID":"$PGID" /config /home/steam /tmp/dumps
     exec gosu "$USER" "/home/steam/run.sh" "$@"

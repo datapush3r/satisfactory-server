@@ -26,6 +26,7 @@ following directories:
 - `/backups` - the server will automatically backup your saves when the container first starts
 - `/gamefiles` - this is for the game's files. They're stored outside the container to avoid needing to redownload
   8GB+ every time you want to rebuild the container
+- `/ini` - symlink to the server's Engine.ini, Game.ini, and GameUserSettings.ini files
 - `/logs` - this holds Steam's logs, and contains a pointer to Satisfactory's logs (empties on startup unless
   `LOG=true`)
 - `/saved` - this contains the game's blueprints, saves, and server configuration
