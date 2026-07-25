@@ -6,7 +6,7 @@ printf "===== Satisfactory Server %s =====\\nhttps://github.com/wolveix/satisfac
 
 MSGERROR="\033[0;31mERROR:\033[0m"
 MSGWARNING="\033[0;33mWARNING:\033[0m"
-NUMCHECK='^[0-9]+$'
+export NUMCHECK='^[0-9]+$'
 RAMAVAILABLE=$(awk '/MemAvailable/ {printf( "%d\n", $2 / 1024000 )}' /proc/meminfo)
 
 export CURRENTGID=$(id -g)
