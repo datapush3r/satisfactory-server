@@ -15,6 +15,19 @@ if ! [[ "$SERVERMESSAGINGPORT" =~ $NUMCHECK ]]; then
 fi
 printf "Setting messaging port to %s\\n" "$SERVERMESSAGINGPORT"
 
+# Backup validation. Set BACKUPINTERVAL=0 to disable.
+if ! [[ "$BACKUPINTERVAL" =~ $NUMCHECK ]]; then
+    printf "Invalid backup interval given: %s\\n" "$BACKUPINTERVAL"
+    BACKUPINTERVAL="3600"
+fi
+printf "Setting backup interval to %s seconds\\n" "$BACKUPINTERVAL"
+
+if ! [[ "$BACKUPKEEP" =~ $NUMCHECK ]] || [[ "$BACKUPKEEP" -eq 0 ]]; then
+    printf "Invalid backup retention count given: %s\\n" "$BACKUPKEEP"
+    BACKUPKEEP="24"
+fi
+printf "Keeping the last %s backups\\n" "$BACKUPKEEP"
+
 # Engine.ini settings.
 if ! [[ "$AUTOSAVENUM" =~ $NUMCHECK ]]; then
     printf "Invalid autosave number given: %s\\n" "$AUTOSAVENUM"
@@ -169,14 +182,27 @@ cd /config/gamefiles || exit 1
 
 chmod +x FactoryServer.sh || true
 ./FactoryServer.sh -Port="$SERVERGAMEPORT" -ReliablePort="$SERVERMESSAGINGPORT" -ExternalReliablePort="$SERVERMESSAGINGPORT" "${ini_args[@]}" "$@" &
+factory_wrapper_pid=$!
 
 sleep 2
-satisfactory_pid=$(ps --ppid ${!} o pid=)
+satisfactory_pid=$(ps --ppid $factory_wrapper_pid o pid=)
+
+backup_pid=""
+if [[ "$BACKUPINTERVAL" -gt 0 ]]; then
+    (
+        while sleep "$BACKUPINTERVAL"; do
+            tar -czf "/config/backups/save-$(date +%Y%m%d-%H%M%S).tar.gz" -C /config/saved . || printf "Backup failed\\n"
+            ls -1t /config/backups/save-*.tar.gz 2>/dev/null | tail -n "+$((BACKUPKEEP + 1))" | xargs -r rm -f
+        done
+    ) &
+    backup_pid=$!
+fi
 
 shutdown() {
     printf "\\nReceived SIGINT. Shutting down.\\n"
     kill -INT $satisfactory_pid 2>/dev/null
+    [[ -n "$backup_pid" ]] && kill $backup_pid 2>/dev/null
 }
 trap shutdown SIGINT SIGTERM
 
-wait
+wait $factory_wrapper_pid

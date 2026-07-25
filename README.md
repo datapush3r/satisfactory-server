@@ -158,6 +158,8 @@ helm install satisfactory k8s-at-home/satisfactory -f values.yaml
 | Parameter               |  Default  | Function                                                  |
 |-------------------------|:---------:|-----------------------------------------------------------|
 | `AUTOSAVENUM`           |    `5`    | number of rotating autosave files                         |
+| `BACKUPINTERVAL`        |  `3600`   | seconds between `/config/backups` archives (`0` disables)  |
+| `BACKUPKEEP`            |   `24`    | number of archives to keep in `/config/backups`            |
 | `DEBUG`                 |  `false`  | for debugging the server                                  |
 | `DISABLESEASONALEVENTS` |  `false`  | disable the FICSMAS event (you miserable bastard)         |
 | `LOG`                   |  `false`  | disable Satisfactory log pruning                          |

@@ -4,6 +4,8 @@ ARG GID=1000
 ARG UID=1000
 
 ENV AUTOSAVENUM="5" \
+    BACKUPINTERVAL="3600" \
+    BACKUPKEEP="24" \
     DEBIAN_FRONTEND="noninteractive" \
     DEBUG="false" \
     DISABLESEASONALEVENTS="false" \
