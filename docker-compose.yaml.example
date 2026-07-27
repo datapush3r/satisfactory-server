@@ -1,0 +1,62 @@
+services:
+  satisfactory-server:
+    container_name: 'satisfactory-server'
+    hostname: 'satisfactory-server'
+    image: 'wolveix/satisfactory-server:latest'
+    ports:
+      - '7777:7777/tcp'
+      - '7777:7777/udp'
+      - '8888:8888/tcp'
+    volumes:
+      - './satisfactory-server:/config'
+    environment:
+      # --- User/group ---
+      - PGID=1000                          # group ID the server runs as
+      - PUID=1000                          # user ID the server runs as
+
+      # --- Ports (must match the `ports:` mapping above if changed) ---
+      - SERVERGAMEPORT=7777                # game server port
+      - SERVERMESSAGINGPORT=8888           # messaging port (internal and external)
+
+      # --- Game/session ---
+      - MAXPLAYERS=4                       # player limit
+      - MAXTICKRATE=30                     # max sim tick rate
+      - MAXOBJECTS=2162688                 # object limit
+      - SERVERSTREAMING=true               # asset streaming toggle
+      - TIMEOUT=30                         # client timeout (seconds)
+      - DISABLESEASONALEVENTS=false        # disable FICSMAS event
+      - MULTIHOME=::                       # listening interface (usually not needed)
+
+      # --- Autosave/backup/pause ---
+      - AUTOPAUSE=true                     # pause server when no players connected
+      - AUTOSAVENUM=5                      # number of rotating autosave files
+      - AUTOSAVEONDISCONNECT=true          # force save when last player disconnects
+      - BACKUPINTERVAL=3600                # seconds between backups (0 disables)
+      - BACKUPKEEP=24                      # number of backup archives to keep
+
+      # --- Bandwidth (bytes/sec) ---
+      - CONFIGUREDINTERNETSPEED=104857600  # assumed internet upload speed
+      - CONFIGUREDLANSPEED=104857600       # assumed LAN speed
+      - MAXCLIENTRATE=104857600            # max per-client bandwidth
+      - MAXINTERNETCLIENTRATE=104857600    # max per-client bandwidth over internet
+      - TOTALNETBANDWIDTH=104857600        # total network bandwidth budget
+      - MAXDYNAMICBANDWIDTH=104857600      # max dynamic network bandwidth
+      - MINDYNAMICBANDWIDTH=104857600      # min dynamic network bandwidth
+
+      # --- Steam/updates ---
+      - SKIPUPDATE=false                   # skip updating game on container start
+      - STEAMBETA=false                    # use experimental branch
+      - STEAMBETAID=                       # custom beta branch ID (testing)
+      - STEAMBETAKEY=                      # password for beta branch (testing)
+
+      # --- Misc/debug ---
+      - LOG=false                          # set true to keep old Satisfactory logs
+      - DEBUG=false                        # print debug info and exit
+      - VMOVERRIDE=false                   # skip CPU model check (VM/QEMU hosts)
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
