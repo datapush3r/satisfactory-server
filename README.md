@@ -127,11 +127,12 @@ docker compose pull
 docker compose up -d
 ```
 
-### SSL Certificate with Certbot (Optional)
+### SSL Certificate (Optional)
 
-You can use Certbot with Let's Encrypt to issue a signed SSL certificate for your server. Without this,
+You can issue a signed SSL certificate for your server, either with Certbot directly, or by reusing a cert
+already managed by a reverse proxy you run (Nginx Proxy Manager, Traefik, Caddy, etc.). Without one,
 Satisfactory will use a self-signed SSL certificate, requiring players to manually confirm them when they initially
-connect. If you're experiencing connectivity issues since issuing a certificate, check the link below for known issues.
+connect.
 
 [Learn more](https://github.com/wolveix/satisfactory-server/tree/main/ssl).
 

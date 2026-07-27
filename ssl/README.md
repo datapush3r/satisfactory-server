@@ -1,8 +1,24 @@
-# SSL Certificate with Certbot
+# SSL Certificate
 
-The instructions below will help you to deploy a signed SSL certificate for your Satisfactory server.
+The instructions below will help you deploy a signed SSL certificate for your Satisfactory server. Without one,
+Satisfactory falls back to a self-signed cert, requiring players to manually confirm it when they first connect.
 
-## Docker Compose
+The game always expects the cert at two fixed paths inside the container, regardless of where it came from:
+
+- `/config/gamefiles/FactoryGame/Certificates/cert_chain.pem`
+- `/config/gamefiles/FactoryGame/Certificates/private_key.pem`
+
+**Your cert must not be a wildcard, and must include the exact hostname players connect to as a SAN.**
+Satisfactory doesn't support wildcard certs or SNI-less matching ([#354](https://github.com/wolveix/satisfactory-server/issues/354)).
+See [Troubleshooting](#troubleshooting) below for more on this.
+
+Pick the setup that matches you:
+
+- [Standalone (Certbot)](#standalone-certbot) — you don't have a reverse proxy already issuing certs.
+- [Reusing an Existing Reverse Proxy's Cert](#reusing-an-existing-reverse-proxys-cert) — you already run
+  Nginx Proxy Manager, Traefik, Caddy, etc. and it's already managing a Let's Encrypt cert for you.
+
+## Standalone (Certbot)
 
 ```yaml
 services:
@@ -56,6 +72,96 @@ to try again (check the `certbot` container's logs for further information).
 
 You can now launch the Docker Compose configuration in the same way you normally would. Do note that if Certbot fails,
 the game server will not start.
+
+Note the `certbot` command above only issues the cert once (`certonly`) — it does not renew it. You'll need to
+re-run it (or set up your own renewal loop) before the cert expires.
+
+## Reusing an Existing Reverse Proxy's Cert
+
+If you already run a reverse proxy (Nginx Proxy Manager, Traefik, Caddy, etc.) that's issuing and renewing a
+Let's Encrypt cert for you, you don't need Certbot above — point the game container at that proxy's cert store
+directly.
+
+**Mount the cert *directory*, not individual files.** Most ACME clients store the live cert as a symlink into
+a versioned archive folder, and repoint that symlink on renewal. Compose's single-file bind mounts (as used in
+the Certbot example above) resolve the symlink once at container start and pin to that file — renewals silently
+go stale until you recreate the container. Mounting the whole directory keeps it live, since the symlink gets
+re-resolved on every read.
+
+The game process itself still only reads the cert once at startup, so **you'll need to restart the container
+periodically** to pick up a renewed cert (a weekly cron is plenty, since renewal happens ~30 days before
+expiry):
+
+```
+0 4 * * 0 docker restart satisfactory-server
+```
+
+### Nginx Proxy Manager
+
+Find your cert's ID under `<npm-data>/letsencrypt/live/` (e.g. `npm-8`) — check the `fullchain.pem` /
+`privkey.pem` symlinks in each folder, or match domains with:
+
+```shell
+openssl x509 -in <npm-data>/letsencrypt/live/npm-N/cert.pem -noout -subject -ext subjectAltName
+```
+
+`docker-compose.yml`:
+
+```yaml
+services:
+  satisfactory-server:
+    # ...
+    volumes:
+      - './satisfactory-server:/config'
+      - '/path/to/npm/letsencrypt:/etc/letsencrypt:ro'
+```
+
+One-time, point the game's cert paths at NPM's live symlinks (this lives on your own `/config` bind mount, so
+it persists across container recreates):
+
+```shell
+CERT_DIR="./satisfactory-server/gamefiles/FactoryGame/Certificates"
+mkdir -p "$CERT_DIR"
+ln -sfn /etc/letsencrypt/live/npm-N/fullchain.pem "$CERT_DIR/cert_chain.pem"
+ln -sfn /etc/letsencrypt/live/npm-N/privkey.pem "$CERT_DIR/private_key.pem"
+```
+
+Replace `npm-N` with your cert's ID. NPM's container doesn't have docker.sock, so it can't restart the
+Satisfactory container itself — use the host cron shown above.
+
+### Traefik
+
+Traefik doesn't store certs as separate PEM files by default — everything lives in one `acme.json`. Run
+[`traefik-certs-dumper`](https://github.com/ldez/traefik-certs-dumper) as a sidecar to split it into
+per-domain PEM files on a watch loop:
+
+```yaml
+services:
+  satisfactory-server:
+    # ...
+    volumes:
+      - './satisfactory-server:/config'
+      - './certs-dump:/etc/certs-dump:ro'
+
+  certs-dumper:
+    image: 'ldez/traefik-certs-dumper:latest'
+    command: 'file --version v2 --watch --source /data/acme.json --dest /output'
+    volumes:
+      - '/path/to/traefik/acme.json:/data/acme.json:ro'
+      - './certs-dump:/output'
+    restart: unless-stopped
+```
+
+This produces `./certs-dump/<domain>/{fullchain,privkey}.pem`, updated live as Traefik renews. One-time:
+
+```shell
+CERT_DIR="./satisfactory-server/gamefiles/FactoryGame/Certificates"
+mkdir -p "$CERT_DIR"
+ln -sfn /etc/certs-dump/<domain>/fullchain.pem "$CERT_DIR/cert_chain.pem"
+ln -sfn /etc/certs-dump/<domain>/privkey.pem "$CERT_DIR/private_key.pem"
+```
+
+Replace `<domain>` with the hostname you issued the cert for.
 
 ## Troubleshooting
 
