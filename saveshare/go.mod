@@ -1,4 +1,4 @@
-module github.com/wolveix/satisfactory-server/saveshare
+module github.com/datapush3r/satisfactory-server/saveshare
 
 go 1.25.0
 

@@ -9,7 +9,7 @@ The game always expects the cert at two fixed paths inside the container, regard
 - `/config/gamefiles/FactoryGame/Certificates/private_key.pem`
 
 **Your cert must not be a wildcard, and must include the exact hostname players connect to as a SAN.**
-Satisfactory doesn't support wildcard certs or SNI-less matching ([#354](https://github.com/wolveix/satisfactory-server/issues/354)).
+Satisfactory doesn't support wildcard certs or SNI-less matching ([#354](https://github.com/datapush3r/satisfactory-server/issues/354)).
 See [Troubleshooting](#troubleshooting) below for more on this.
 
 Pick the setup that matches you:
@@ -25,7 +25,7 @@ services:
   satisfactory-server:
     container_name: 'satisfactory-server'
     hostname: 'satisfactory-server'
-    image: 'wolveix/satisfactory-server:latest'
+    image: 'datapush3r/satisfactory-server:latest'
     ports:
       - '7777:7777/tcp'
       - '7777:7777/udp'
@@ -169,8 +169,8 @@ Replace `<domain>` with the hostname you issued the cert for.
 
 If you could reach the server before configuring a signed SSL cert, ensure that you're not doing either of the 
 following:
-- Using a wildcard cert: Satisfactory does not support them ([#354](https://github.com/wolveix/satisfactory-server/issues/354))
-- Connecting to a hostname not specified in your cert: Satisfactory does not support this ([#354](https://github.com/wolveix/satisfactory-server/issues/354))
+- Using a wildcard cert: Satisfactory does not support them ([#354](https://github.com/datapush3r/satisfactory-server/issues/354))
+- Connecting to a hostname not specified in your cert: Satisfactory does not support this ([#354](https://github.com/datapush3r/satisfactory-server/issues/354))
 - Using your local IP. You cannot use your local IP, as it will not be included in your certificate.
 
 ### What if port 80 is already in-use with a reverse-proxy?
